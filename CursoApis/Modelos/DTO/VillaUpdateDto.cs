@@ -2,8 +2,9 @@
 
 namespace CursoApis.Modelos.DTO
 {
-    public class VillaDto
+    public class VillaUpdateDto
     {
+        [Required]
         public int id {  get; set; }
 
         [Required]
@@ -12,9 +13,14 @@ namespace CursoApis.Modelos.DTO
 
         public string Detalle { get; set; }
 
+
+        
         public int tarifa { get; set; }
+        [Required]
         public int Ocupantes { get; set; }
+        [Required] 
         public int MetrosCuadrados { get; set; }
+        [Required] 
         public string ImagenUrl { get; set; }
         public String Amenidad { get; set; }
 

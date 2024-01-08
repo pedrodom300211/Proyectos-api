@@ -2,10 +2,8 @@
 
 namespace CursoApis.Modelos.DTO
 {
-    public class VillaDto
+    public class VillaCrearDto
     {
-        public int id {  get; set; }
-
         [Required]
         [MaxLength(30)]
         public string Nombre { get; set; }
