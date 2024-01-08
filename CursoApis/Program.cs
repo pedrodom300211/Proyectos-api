@@ -1,3 +1,4 @@
+using CursoApis;
 using CursoApis.Datos;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,7 +16,7 @@ builder.Services.AddDbContext<ApliccationDboContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
-
+builder.Services.AddAutoMapper(typeof(MappingConfig));
 
 var app = builder.Build();
 
