@@ -2,6 +2,7 @@
 using CursoApis.Datos;
 using CursoApis.Modelos;
 using CursoApis.Modelos.DTO;
+using CursoApis.Repositorio.IRepositorio;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
@@ -17,13 +18,13 @@ namespace CursoApis.Controllers
     public class PrimerController : ControllerBase
     {
         private readonly ILogger<PrimerController> _logger;  
-        private readonly ApliccationDboContext _db;
+        private readonly IVillaRepositorio _villaRepo;
         private readonly IMapper _mapper;
 
-        public PrimerController(ILogger<PrimerController>logger, ApliccationDboContext db, IMapper mapper)
+        public PrimerController(ILogger<PrimerController>logger, IVillaRepositorio villaRepo, IMapper mapper)
         {
             _logger = logger;
-            _db=db;
+            _villaRepo = villaRepo;
             _mapper=mapper;
         }
 
@@ -32,7 +33,7 @@ namespace CursoApis.Controllers
         public async Task<ActionResult<IEnumerable<VillaDto>>> GetVillas()
         {
             _logger.LogInformation("Obtener las Villas");
-            IEnumerable<Villa> villaList = await _db.Villas.ToListAsync();
+            IEnumerable<Villa> villaList = await _villaRepo.ObtenerTodos();
             return Ok(_mapper.Map<IEnumerable<VillaDto>>(villaList));
         
         }
@@ -57,7 +58,7 @@ namespace CursoApis.Controllers
             }
 
             ///var villa = VillaStore.VillaList.FirstOrDefault(V => V.id == id);
-            var villa = await  _db.Villas.FirstOrDefaultAsync(v=> v.Id == id);
+            var villa = await _villaRepo.Obtener(v=> v.Id == id);
 
             if (villa == null)
             {
@@ -76,7 +77,7 @@ namespace CursoApis.Controllers
             {
                 return BadRequest(ModelState);
             }
-            if (await _db.Villas.FirstOrDefaultAsync(v => v.Nombre.ToLower() == createDto.Nombre.ToLower()) != null)
+            if (await _villaRepo.Obtener(v => v.Nombre.ToLower() == createDto.Nombre.ToLower()) != null)
             {
                 ModelState.AddModelError("NombreExiste", "La Villa con ese nombre ya existe");
                 return BadRequest(ModelState);
@@ -94,9 +95,9 @@ namespace CursoApis.Controllers
             Villa modelo = _mapper.Map<Villa>(createDto);
             
             ///Agregas objeto
-           await _db.Villas.AddAsync(modelo);
+           await _villaRepo.Crear(modelo);
             ///Guardas
-            await _db.SaveChangesAsync();
+            
             return CreatedAtRoute("GetVilla", new { id = modelo.Id },modelo);
         }
 
@@ -112,14 +113,14 @@ namespace CursoApis.Controllers
                 return BadRequest(ModelState);
             }
             ///cargas el id a eliminar
-            var Villa = await _db.Villas.FirstOrDefaultAsync(v => v.Id == id);
+            var Villa = await _villaRepo.Obtener(v => v.Id == id);
             if(Villa == null)
             {
                 return NotFound();
             }
             ///Lo Eliminas
-            _db.Villas.Remove(Villa);
-            await _db.SaveChangesAsync();
+            _villaRepo.Remover(Villa);
+            
             return NoContent();
         }
         [HttpPut("{id:int}")]
@@ -134,8 +135,8 @@ namespace CursoApis.Controllers
             }
             
             Villa modelo= _mapper.Map<Villa>(UpdateDto);
-            _db.Villas.Update(modelo);
-           await _db.SaveChangesAsync();
+            _villaRepo.Actualizar(modelo);
+          
             return NoContent();
         }
         [HttpPatch]
@@ -148,7 +149,7 @@ namespace CursoApis.Controllers
             {
                 return BadRequest();
             }
-            var villa = await _db.Villas.AsNoTracking().FirstOrDefaultAsync(v => v.Id == id);
+            var villa = await _villaRepo.Obtener(v => v.Id == id, tracked: false);
 
             VillaUpdateDto villaDto = _mapper.Map<VillaUpdateDto>(villa);
             
@@ -160,8 +161,11 @@ namespace CursoApis.Controllers
                 return BadRequest(ModelState);
             }
             Villa modelo = _mapper.Map<Villa>(villaDto);
-            _db.Villas.Update(modelo);
-           await _db.SaveChangesAsync();
+
+
+
+            _villaRepo.Actualizar(modelo);
+          
 
             return NoContent();
         }
